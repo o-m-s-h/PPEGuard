@@ -1,0 +1,16 @@
+# Dataset
+data/*
+!data/data.yaml
+
+# Input/output images
+inputs/
+outputs/
+
+# Model
+models/*.pt
+
+# Training artifacts
+runs/
+wandb/
+
+.env
