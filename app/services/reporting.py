@@ -3,6 +3,26 @@ import csv
 import os
 
 
+def collect_violations(result):
+    violations = []
+    for box in result.boxes:
+        name = result.names[int(box.cls[0])]
+        if is_violation(name):
+            violations.append({"type": name, "confidence": round(float(box.conf[0]), 4),
+                               "severity": get_severity(name), "timestamp": None})
+    return violations
+
+
+def write_reports(report, destination):
+    (destination / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    fields = (["type", "severity", "start_time", "end_time"] if report["media_type"] == "video"
+              else ["type", "confidence", "severity", "timestamp"])
+    with (destination / "report.csv").open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(report["violations"])
+
+
 VIOLATION_SEVERITY = {
     "NO-Hardhat": "high",
     "NO-Safety Vest": "medium",
