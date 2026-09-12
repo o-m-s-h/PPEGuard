@@ -5,6 +5,7 @@ import cv2
 
 from app.services.reporting import collect_violations, write_reports
 from app.services.smoothing import aggregate_events
+from app.services.video_encoding import encode_for_browser
 
 
 def detect_video(source: Path, destination: Path, detector, confidence=0.25, input_name=None):
@@ -24,7 +25,7 @@ def detect_video(source: Path, destination: Path, detector, confidence=0.25, inp
             raise ValueError("Video contains no decodable frames.")
         height, width = frame.shape[:2]
         destination.mkdir(parents=True, exist_ok=True)
-        writer = cv2.VideoWriter(str(destination / "annotated.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
+        writer = cv2.VideoWriter(str(destination / "intermediate.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
         if not writer.isOpened():
             raise RuntimeError("Could not initialize the MP4 encoder.")
         while ok:
@@ -39,6 +40,7 @@ def detect_video(source: Path, destination: Path, detector, confidence=0.25, inp
         cap.release()
         if writer is not None:
             writer.release()
+    encode_for_browser(destination / "intermediate.mp4", destination / "annotated.mp4")
     events = aggregate_events(seconds_by_type)
     report = {
         "input_file": input_name or source.name,
